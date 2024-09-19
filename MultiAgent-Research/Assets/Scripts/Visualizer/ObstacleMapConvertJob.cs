@@ -1,9 +1,9 @@
-﻿using Unity.Burst;
+﻿using PathFinding;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
-using Visualizer.MapEditor;
 
 namespace Visualizer
 {

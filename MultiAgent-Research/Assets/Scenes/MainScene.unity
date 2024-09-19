@@ -439,9 +439,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 808944335}
+  - component: {fileID: 808944338}
   - component: {fileID: 808944336}
   - component: {fileID: 808944337}
-  - component: {fileID: 808944338}
   m_Layer: 0
   m_Name: MapVisualizer
   m_TagString: Untagged
@@ -554,6 +554,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1225256723}
   - component: {fileID: 1225256724}
+  - component: {fileID: 1225256725}
   m_Layer: 0
   m_Name: Starter
   m_TagString: Untagged
@@ -588,8 +589,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6b8a05692ae4b64c9c9c9acd91ca7a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mediator: {fileID: 1518213660}
+  solverType: 1
+  mapDataManager: {fileID: 1518213659}
+  agentFactory: {fileID: 1225256725}
   visualizer: {fileID: 808944336}
+--- !u!114 &1225256725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1225256722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73f03e6a8f63480cba5bb20d9e1da302, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   agentPrefab: {fileID: 6076674493375170171, guid: 904f6d240f95f954698bcefc93a6f2e6, type: 3}
   agentParent: {fileID: 808944335}
 --- !u!1 &1518213657
@@ -602,7 +617,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1518213658}
   - component: {fileID: 1518213659}
-  - component: {fileID: 1518213660}
   m_Layer: 0
   m_Name: MapDataParser
   m_TagString: Untagged
@@ -640,19 +654,6 @@ MonoBehaviour:
   defaultHeight: 30
   defaultWidth: 30
   mapData: {fileID: 11400000, guid: f3a6af2636d1ddb4080af1cd18e604e9, type: 2}
---- !u!114 &1518213660
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1518213657}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1d08a09660cf174d8450b91a8bdfe74, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mapDataManager: {fileID: 1518213659}
 --- !u!1 &1947067357
 GameObject:
   m_ObjectHideFlags: 0

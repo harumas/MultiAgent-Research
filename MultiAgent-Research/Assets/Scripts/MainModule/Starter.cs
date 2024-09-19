@@ -1,211 +1,119 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using PathFinding.Algorithm;
 using PathFinder.Core;
+using PathFinding;
 using UnityEngine;
 using Visualizer;
-using Visualizer.MapEditor;
+using Vector2Int = PathFinder.Core.Vector2Int;
 
 namespace MainModule
 {
+    public enum SolverType
+    {
+        MySolver,
+        NormalAStar
+    }
+
     public class Starter : MonoBehaviour
     {
-        [Header("インスタンス")] [SerializeField] private GridGraphMediator mediator;
+        [SerializeField] private SolverType solverType;
+        [SerializeField] private MapDataManager mapDataManager;
+        [SerializeField] private AgentFactory agentFactory;
         [SerializeField] private MapVisualizer visualizer;
-        [SerializeField] private GameObject agentPrefab;
-        [SerializeField] private Transform agentParent;
 
-        private bool isInitialized;
-        private SampleAlgorithm solver;
+        private GridGraphMediator mediator;
+        private ISolver solver;
         private Agent player;
         private List<Agent> moveAgents;
-        private Vector2Int currentGoal;
-        private List<Vector2Int> halfGoals = new List<Vector2Int>();
         private List<AgentContext> contexts;
 
         private void Start()
         {
-            isInitialized = mediator.Initialize();
+            // マップデータの読み込み
+            MapData mapData = mapDataManager.Load();
 
-            if (!isInitialized)
+            if (!mapData.IsValid())
             {
                 Debug.LogError("初期化に失敗しました");
                 return;
             }
 
+
+            mediator = new GridGraphMediator(mapData);
+
             //ビジュアライザーの初期化
-            MapData mapData = mediator.GetMapData();
             visualizer.Create(mapData.Width, mapData.Height);
 
             // グラフを構築する
-            Graph graph = mediator.ConstructGraph();
-            solver = CreateSolver(graph);
+            GraphConstructor constructor = new GraphConstructor(mapData, mediator);
+            Graph graph = constructor.ConstructGraph();
 
-            currentGoal = mapData.Goal;
-            CreateAgents(mapData.Agents);
-            AssignHalfGoal();
-            contexts = CreateContexts(mapData.Agents);
-            Solve(mapData);
+            // ソルバーの作成
+            solver = CreateSolver(graph, mapData.Grids);
+
+            // エージェントの作成
+            (player, moveAgents) = agentFactory.CreateAgents(mapData);
+
+            // 解決
+            contexts = CreateContexts(mapData.Agents, mapData.Goal);
+            Solve(mapData.Grids);
         }
 
-
-        // 幅優先探索で障害物を避け、最も近い通行可能なセルを見つける関数
-        private Vector2Int? FindNearestGoal(GridType[,] grid, Vector2Int point)
+        private ISolver CreateSolver(Graph graph, GridType[,] grids)
         {
-            int rows = grid.GetLength(0);
-            int cols = grid.GetLength(1);
-
-            // 探索用のキューと探索済みの座標を記録するセット
-            Queue<Vector2Int> queue = new Queue<Vector2Int>();
-            HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
-
-            // 初期位置をキューに追加し、訪問済みとしてマーク
-            queue.Enqueue(point);
-            visited.Add(point);
-
-            // 移動可能な方向（上下左右）
-            Vector2Int[] direction = new[]
+            switch (solverType)
             {
-                new Vector2Int(1, 0),
-                new Vector2Int(0, 1),
-                new Vector2Int(-1, 0),
-                new Vector2Int(0, -1)
-            };
-
-            // 幅優先探索
-            while (queue.Count > 0)
-            {
-                Vector2Int p = queue.Dequeue();
-
-                // 通行可能なセルを見つけた場合
-                if ((grid[p.y, p.x] & GridType.Obstacle) == 0)
-                {
-                    return p;
-                }
-
-                // 隣接するセルを探索
-                foreach (var d in direction)
-                {
-                    Vector2Int n = p + d;
-
-                    // グリッド範囲内かつ未探索である場合
-                    if (n.x >= 0 && n.x < rows && n.y >= 0 && n.y < cols && !visited.Contains(n))
-                    {
-                        visited.Add(n);
-                        queue.Enqueue(n);
-                    }
-                }
-            }
-
-            // 通行可能なセルが見つからない場合
-            return null;
-        }
-
-        private void AssignHalfGoal()
-        {
-            GridType[,] grid = mediator.GetMapData().Grids;
-            Vector2Int goal = currentGoal;
-            
-            for (var i = 0; i < moveAgents.Count; i++)
-            {
-                var agent = moveAgents[i];
-                Vector2 bullet = agent.Position + (Vector2)(goal - agent.Position) * 0.5f;
-                Vector2Int point = new Vector2Int(Mathf.RoundToInt(bullet.x), Mathf.RoundToInt(bullet.y));
-
-                if ((grid[point.y, point.x] & GridType.Obstacle) == 0)
-                {
-                    halfGoals[i] = point;
-                }
-                else
-                {
-                    Vector2Int? nearestGoal = FindNearestGoal(mediator.GetMapData().Grids, point);
-
-
-                    if (nearestGoal != null)
-                    {
-                        if (nearestGoal == agent.Position)
-                        {
-                            nearestGoal = goal;
-                        }
-
-                        halfGoals[i] = nearestGoal.Value;
-                    }
-                    else
-                    {
-                        halfGoals[i] = goal;
-                    }
-                }
+                case SolverType.MySolver:
+                    return new SampleAlgorithm(graph, grids, mediator);
+                case SolverType.NormalAStar:
+                    return new NormalAStar(graph, mediator);
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
-        private SampleAlgorithm CreateSolver(Graph graph)
-        {
-            // 座標からアルゴリズムで使用するノードを作成
-            List<Node> nodes = new List<Node>(graph.NodeCount);
-
-            for (int i = 0; i < graph.NodeCount; i++)
-            {
-                Vector2Int pos = mediator.GetPos(i);
-                nodes.Add(new Node(i, new System.Numerics.Vector2(pos.x, pos.y)));
-            }
-
-            return new SampleAlgorithm(graph, nodes);
-        }
-
-        private void Solve(MapData mapData)
+        private void Solve(GridType[,] grids)
         {
             // 経路探索を実行
             var result = solver.Solve(contexts);
-            PaintPath(mapData.Grids, result);
+
+            // パスデータを書き込む
+            PaintPath(grids, result);
 
             foreach ((int agentIndex, List<int> path) in result)
             {
-                moveAgents[agentIndex].SetWaypoints(path.Select(node => mediator.GetPos(node)).ToList());
+                var waypoints = path.Select(node => mediator.GetPos(node)).ToList();
+                moveAgents[agentIndex].SetWaypoints(waypoints);
             }
         }
 
-        /// <summary>
-        /// Solverに渡すContextを作成します
-        /// </summary>
-        /// <returns></returns>
-        private void CreateAgents(IReadOnlyList<Vector2Int> agentPoints)
-        {
-            moveAgents = new List<Agent>(agentPoints.Count);
-
-            player = Instantiate(agentPrefab, agentParent).GetComponent<Agent>();
-            player.Initialize(-1, currentGoal);
-
-            for (var index = 0; index < agentPoints.Count; index++)
-            {
-                var point = agentPoints[index];
-                //エージェントのオブジェクトを生成
-                Agent moveAgent = Instantiate(agentPrefab, agentParent).GetComponent<Agent>();
-                moveAgent.Initialize(index, point);
-
-                moveAgents.Add(moveAgent);
-                halfGoals.Add(currentGoal);
-            }
-        }
-
-        private List<AgentContext> CreateContexts(IReadOnlyList<Vector2Int> agentPoints)
+        private List<AgentContext> CreateContexts(IReadOnlyList<Vector2Int> agentPoints, Vector2Int goal)
         {
             List<AgentContext> contexts = new List<AgentContext>(agentPoints.Count);
 
             for (var i = 0; i < moveAgents.Count; i++)
             {
-                contexts.Add(new AgentContext(i, mediator.GetNode(agentPoints[i]), mediator.GetNode(halfGoals[i])));       
+                int agentNode = mediator.GetNode(agentPoints[i]);
+                int goalNode = mediator.GetNode(goal);
+
+                contexts.Add(new AgentContext(i, agentNode, goalNode));
             }
 
             return contexts;
         }
 
-        private void UpdateContexts(List<AgentContext> contexts)
+        private void UpdateContexts(List<AgentContext> contexts, Vector2Int goal)
         {
-            player.SetWaypoints(new List<Vector2Int>(1) { currentGoal });
+            player.SetWaypoints(new List<Vector2Int>(1) { goal });
 
             for (var i = 0; i < moveAgents.Count; i++)
             {
-                contexts[i] = new AgentContext(contexts[i].AgentIndex, mediator.GetNode(moveAgents[i].Position), mediator.GetNode(halfGoals[i]));
+                int agentNode = mediator.GetNode(moveAgents[i].Position);
+                int goalNode = mediator.GetNode(goal);
+
+                contexts[i] = new AgentContext(contexts[i].AgentIndex, agentNode, goalNode);
             }
         }
 
@@ -238,42 +146,40 @@ namespace MainModule
 
         private void MovePlayerAgent()
         {
-            Vector2Int input = Vector2Int.zero;
+            Vector2Int input = new Vector2Int(0, 0);
 
             if (Input.GetKeyDown(KeyCode.LeftArrow))
             {
-                input = Vector2Int.left;
+                input = new Vector2Int(-1, 0);
             }
 
             if (Input.GetKeyDown(KeyCode.RightArrow))
             {
-                input = Vector2Int.right;
+                input = new Vector2Int(1, 0);
             }
 
             if (Input.GetKeyDown(KeyCode.UpArrow))
             {
-                input = Vector2Int.up;
+                input = new Vector2Int(0, 1);
             }
 
             if (Input.GetKeyDown(KeyCode.DownArrow))
             {
-                input = Vector2Int.down;
+                input = new Vector2Int(0, -1);
             }
 
-            Vector2Int goal = currentGoal + input;
-            MapData mapData = mediator.GetMapData();
+            Vector2Int goal = player.Position + input;
+            GridType[,] grids = mapDataManager.CurrentMapData.Grids;
 
-            if ((mapData.Grids[goal.y, goal.x] & GridType.Obstacle) == GridType.Obstacle)
+            if ((grids[goal.y, goal.x] & GridType.Obstacle) == GridType.Obstacle)
             {
                 return;
             }
 
-            if (input != Vector2Int.zero)
+            if (input.x != 0 || input.y != 0)
             {
-                currentGoal += input;
-                AssignHalfGoal();
-                UpdateContexts(contexts);
-                Solve(mapData);
+                UpdateContexts(contexts, goal);
+                Solve(grids);
             }
         }
 
@@ -281,8 +187,8 @@ namespace MainModule
         {
             MovePlayerAgent();
 
-            MapData mapData = mediator.GetMapData();
-            visualizer.UpdateMap(mapData.Grids, convertJob);
+            GridType[,] mapData = mapDataManager.CurrentMapData.Grids;
+            visualizer.UpdateMap(mapData, convertJob);
         }
     }
 }

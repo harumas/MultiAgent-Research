@@ -1,37 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
+using PathFinding;
 using UnityEngine;
+using Visualizer.MapEditor;
 
-namespace Visualizer.MapEditor
+namespace MainModule
 {
-    [Flags]
-    public enum GridType
-    {
-        Road = 1,
-        Obstacle = 2,
-        Path = 4
-    }
-
-    public class MapData
-    {
-        public readonly int Height;
-        public readonly int Width;
-        public readonly int PassableCount;
-        public readonly IReadOnlyList<Vector2Int> Agents;
-        public readonly Vector2Int Goal;
-        public readonly GridType[,] Grids;
-
-        public MapData(int height, int width, int passableCount, IReadOnlyList<Vector2Int> agents, Vector2Int goal, GridType[,] grids)
-        {
-            Height = height;
-            Width = width;
-            PassableCount = passableCount;
-            Agents = agents;
-            Goal = goal;
-            Grids = grids;
-        }
-    }
-
     public class MapDataManager : MonoBehaviour
     {
         [SerializeField] private int defaultHeight;

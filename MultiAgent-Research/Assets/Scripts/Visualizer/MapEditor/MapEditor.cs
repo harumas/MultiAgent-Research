@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using MainModule;
+using PathFinding;
+using UnityEngine;
 
 namespace Visualizer.MapEditor
 {

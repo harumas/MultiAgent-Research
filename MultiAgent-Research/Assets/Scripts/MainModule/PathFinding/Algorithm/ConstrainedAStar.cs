@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using PathFinder.Core;
-using UnityEngine;
 
-namespace MainModule
+namespace PathFinding.Algorithm
 {
     /// <summary>
     /// 制約を考慮するA*アルゴリズム
@@ -83,7 +82,8 @@ namespace MainModule
 
         private float Heuristic(Node nodeA, Node nodeB)
         {
-            float magnitude = (nodeA.Position - nodeB.Position).LengthSquared();
+            Vector2 ab = nodeA.Position - nodeB.Position;
+            float magnitude = ab.x * ab.x + ab.y * ab.y;
             return magnitude;
         }
 
