@@ -33,12 +33,11 @@ namespace Visualizer
             // new Vector2Int(1, -1),
         };
 
-        public bool Initialize()
+        public void Initialize()
         {
             mapData = mapDataManager.Load();
             nodeIndexList = CreateNodeIndexList();
             indexNodeList = nodeIndexList.ToDictionary(x => x.Value, x => x.Key);
-            return ValidateEndPoints();
         }
 
         public MapData GetMapData()
@@ -108,19 +107,6 @@ namespace Visualizer
         private int GetIndex(int node)
         {
             return nodeIndexList[node];
-        }
-
-        private bool ValidateEndPoints()
-        {
-            var agents = mapData.Agents;
-            bool isUniqueStarts = !agents.GroupBy(p => p).SelectMany(g => g.Skip(1)).Any();
-
-            if (!isUniqueStarts)
-            {
-                Debug.LogError("スタートのデータが重複しています。");
-            }
-
-            return isUniqueStarts;
         }
 
         private Dictionary<int, int> CreateNodeIndexList()

@@ -18,14 +18,14 @@ namespace MainModule
         private bool isInitialized;
         private SampleAlgorithm solver;
         private Agent player;
-        private List<Agent> moveAgents;
+        private Agent enemy;
         private Vector2Int currentGoal;
-        private List<Vector2Int> halfGoals = new List<Vector2Int>();
-        private List<AgentContext> contexts;
+        private Vector2Int halfGoal;
 
         private void Start()
         {
-            isInitialized = mediator.Initialize();
+            mediator.Initialize();
+            isInitialized = true;
 
             if (!isInitialized)
             {
@@ -41,10 +41,9 @@ namespace MainModule
             Graph graph = mediator.ConstructGraph();
             solver = CreateSolver(graph);
 
-            currentGoal = mapData.Goal;
-            CreateAgents(mapData.Agents);
+            currentGoal = mapData.Player;
+            CreateAgents(mapData.Player, mapData.Enemy);
             AssignHalfGoal();
-            contexts = CreateContexts(mapData.Agents);
             Solve(mapData);
         }
 
@@ -56,15 +55,15 @@ namespace MainModule
             int cols = grid.GetLength(1);
 
             // 探索用のキューと探索済みの座標を記録するセット
-            Queue<Vector2Int> queue = new Queue<Vector2Int>();
-            HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
+            var queue = new Queue<Vector2Int>();
+            var visited = new HashSet<Vector2Int>();
 
             // 初期位置をキューに追加し、訪問済みとしてマーク
             queue.Enqueue(point);
             visited.Add(point);
 
             // 移動可能な方向（上下左右）
-            Vector2Int[] direction = new[]
+            var direction = new[]
             {
                 new Vector2Int(1, 0),
                 new Vector2Int(0, 1),
@@ -105,35 +104,31 @@ namespace MainModule
         {
             GridType[,] grid = mediator.GetMapData().Grids;
             Vector2Int goal = currentGoal;
-            
-            for (var i = 0; i < moveAgents.Count; i++)
-            {
-                var agent = moveAgents[i];
-                Vector2 bullet = agent.Position + (Vector2)(goal - agent.Position) * 0.5f;
-                Vector2Int point = new Vector2Int(Mathf.RoundToInt(bullet.x), Mathf.RoundToInt(bullet.y));
 
-                if ((grid[point.y, point.x] & GridType.Obstacle) == 0)
+            Vector2 bullet = enemy.Position + (Vector2)(goal - enemy.Position) * 0.5f;
+            Vector2Int point = new Vector2Int(Mathf.RoundToInt(bullet.x), Mathf.RoundToInt(bullet.y));
+
+            if ((grid[point.y, point.x] & GridType.Obstacle) == 0)
+            {
+                halfGoal = point;
+            }
+            else
+            {
+                Vector2Int? nearestGoal = FindNearestGoal(mediator.GetMapData().Grids, point);
+
+
+                if (nearestGoal != null)
                 {
-                    halfGoals[i] = point;
+                    if (nearestGoal == player.Position)
+                    {
+                        nearestGoal = goal;
+                    }
+
+                    halfGoal = nearestGoal.Value;
                 }
                 else
                 {
-                    Vector2Int? nearestGoal = FindNearestGoal(mediator.GetMapData().Grids, point);
-
-
-                    if (nearestGoal != null)
-                    {
-                        if (nearestGoal == agent.Position)
-                        {
-                            nearestGoal = goal;
-                        }
-
-                        halfGoals[i] = nearestGoal.Value;
-                    }
-                    else
-                    {
-                        halfGoals[i] = goal;
-                    }
+                    halfGoal = goal;
                 }
             }
         }
@@ -155,81 +150,97 @@ namespace MainModule
         private void Solve(MapData mapData)
         {
             // 経路探索を実行
-            var result = solver.Solve(contexts);
+            var result = solver.Solve(mediator.GetNode(enemy.Position), mediator.GetNode(halfGoal));
             PaintPath(mapData.Grids, result);
+            PaintCircle(mapData.Grids, enemy.Position, 4);
 
-            foreach ((int agentIndex, List<int> path) in result)
-            {
-                moveAgents[agentIndex].SetWaypoints(path.Select(node => mediator.GetPos(node)).ToList());
-            }
+            enemy.SetWaypoints(result.Select(node => mediator.GetPos(node)).ToList());
         }
 
         /// <summary>
         /// Solverに渡すContextを作成します
         /// </summary>
         /// <returns></returns>
-        private void CreateAgents(IReadOnlyList<Vector2Int> agentPoints)
+        private void CreateAgents(Vector2Int playerPos, Vector2Int enemyPos)
         {
-            moveAgents = new List<Agent>(agentPoints.Count);
-
             player = Instantiate(agentPrefab, agentParent).GetComponent<Agent>();
-            player.Initialize(-1, currentGoal);
+            player.Initialize(true, playerPos);
 
-            for (var index = 0; index < agentPoints.Count; index++)
-            {
-                var point = agentPoints[index];
-                //エージェントのオブジェクトを生成
-                Agent moveAgent = Instantiate(agentPrefab, agentParent).GetComponent<Agent>();
-                moveAgent.Initialize(index, point);
+            enemy = Instantiate(agentPrefab, agentParent).GetComponent<Agent>();
+            enemy.Initialize(false, enemyPos);
 
-                moveAgents.Add(moveAgent);
-                halfGoals.Add(currentGoal);
-            }
+            halfGoal = currentGoal;
         }
 
-        private List<AgentContext> CreateContexts(IReadOnlyList<Vector2Int> agentPoints)
-        {
-            List<AgentContext> contexts = new List<AgentContext>(agentPoints.Count);
-
-            for (var i = 0; i < moveAgents.Count; i++)
-            {
-                contexts.Add(new AgentContext(i, mediator.GetNode(agentPoints[i]), mediator.GetNode(halfGoals[i])));       
-            }
-
-            return contexts;
-        }
-
-        private void UpdateContexts(List<AgentContext> contexts)
+        private void UpdateContexts()
         {
             player.SetWaypoints(new List<Vector2Int>(1) { currentGoal });
-
-            for (var i = 0; i < moveAgents.Count; i++)
-            {
-                contexts[i] = new AgentContext(contexts[i].AgentIndex, mediator.GetNode(moveAgents[i].Position), mediator.GetNode(halfGoals[i]));
-            }
         }
 
-        private void PaintPath(GridType[,] grids, List<(int agentIndex, List<int> path)> result)
+        private void PaintPath(GridType[,] grids, List<int> result)
         {
-            RemovePathData(grids);
+            RemoveBitData(grids, GridType.Path);
 
-            foreach (List<int> path in result.Select(item => item.path))
+            foreach (Vector2Int pos in result.Select(index => mediator.GetPos(index)))
             {
-                foreach (int index in path)
-                {
-                    Vector2Int pos = mediator.GetPos(index);
-                    grids[pos.y, pos.x] |= GridType.Path;
-                }
+                grids[pos.y, pos.x] |= GridType.Path;
             }
         }
 
-        private void RemovePathData(GridType[,] grids)
+        private void PaintCircle(GridType[,] grids, Vector2Int center, int radius)
+        {
+            RemoveBitData(grids, GridType.Circle);
+
+            Vector2Int pos = Vector2Int.zero;
+            int d = 0;
+
+            d = 3 - 2 * radius;
+            pos.y = radius;
+
+            SetCirclePoint(grids, center.x, radius + center.y);
+            SetCirclePoint(grids, center.x, -radius + center.y);
+            SetCirclePoint(grids, radius + center.x, center.y);
+            SetCirclePoint(grids, -radius + center.x, center.y);
+
+            for (pos.x = 0; pos.x <= pos.y; pos.x++)
+            {
+                if (d < 0)
+                {
+                    d += 6 + 4 * pos.x;
+                }
+                else
+                {
+                    d += 10 + 4 * pos.x - 4 * pos.y--;
+                }
+
+                SetCirclePoint(grids, pos.y + center.x, pos.x + center.y);
+                SetCirclePoint(grids, pos.x + center.x, pos.y + center.y);
+                SetCirclePoint(grids, -pos.x + center.x, pos.y + center.y);
+                SetCirclePoint(grids, -pos.y + center.x, pos.x + center.y);
+                SetCirclePoint(grids, -pos.y + center.x, -pos.x + center.y);
+                SetCirclePoint(grids, -pos.x + center.x, -pos.y + center.y);
+                SetCirclePoint(grids, pos.x + center.x, -pos.y + center.y);
+                SetCirclePoint(grids, pos.y + center.x, -pos.x + center.y);
+            }
+        }
+
+        private void SetCirclePoint(GridType[,] grids, int x, int y)
+        {
+            if (x < 0 || x >= grids.GetLength(1) || y < 0 || y >= grids.GetLength(0))
+            {
+                return;
+            }
+
+            grids[y, x] |= GridType.Circle;
+        }
+
+        private void RemoveBitData(GridType[,] grids, GridType type)
         {
             for (int y = 0; y < grids.GetLength(0); y++)
             {
                 for (int x = 0; x < grids.GetLength(1); x++)
                 {
-                    grids[y, x] &= ~GridType.Path;
+                    grids[y, x] &= ~type;
                 }
             }
         }
@@ -271,10 +282,11 @@ namespace MainModule
             if (input != Vector2Int.zero)
             {
                 currentGoal += input;
-                AssignHalfGoal();
-                UpdateContexts(contexts);
-                Solve(mapData);
             }
+
+            AssignHalfGoal();
+            UpdateContexts();
+            Solve(mapData);
         }
 
         private void Update()

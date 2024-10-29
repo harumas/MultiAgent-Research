@@ -10,29 +10,19 @@ namespace MainModule
         [SerializeField] private Color playerColor;
         [SerializeField] private Color enemyColor;
 
-        public int Index { get; private set; }
         public Vector2Int Position => gridPositions[moveCount];
 
         private List<Vector2Int> gridPositions;
         private int moveCount;
         private Vector3 agentPosition;
 
-        public void Initialize(int index, Vector2Int start)
+        public void Initialize(bool isPlayer, Vector2Int start)
         {
-            Index = index;
-
-            gameObject.name = $"Agent_{index}";
+            gameObject.name = $"Agent_{isPlayer}";
             transform.localPosition = GetAgentPos(start);
             SetWaypoints(new List<Vector2Int>(1) { start });
 
-            if (index == -1)
-            {
-                spriteRenderer.material.color = playerColor;
-            }
-            else
-            {
-                spriteRenderer.material.color = enemyColor;
-            }
+            spriteRenderer.material.color = isPlayer ? playerColor : enemyColor;
         }
 
         public void SetWaypoints(List<Vector2Int> gridPositions)

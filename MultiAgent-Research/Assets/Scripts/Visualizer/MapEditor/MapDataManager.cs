@@ -9,7 +9,8 @@ namespace Visualizer.MapEditor
     {
         Road = 1,
         Obstacle = 2,
-        Path = 4
+        Path = 4,
+        Circle = 8,
     }
 
     public class MapData
@@ -17,17 +18,25 @@ namespace Visualizer.MapEditor
         public readonly int Height;
         public readonly int Width;
         public readonly int PassableCount;
-        public readonly IReadOnlyList<Vector2Int> Agents;
-        public readonly Vector2Int Goal;
+
+        public readonly Vector2Int Player;
+        public readonly Vector2Int Enemy;
         public readonly GridType[,] Grids;
 
-        public MapData(int height, int width, int passableCount, IReadOnlyList<Vector2Int> agents, Vector2Int goal, GridType[,] grids)
+        public MapData(
+            int height,
+            int width,
+            int passableCount,
+            Vector2Int start,
+            Vector2Int goal,
+            GridType[,] grids
+        )
         {
             Height = height;
             Width = width;
+            Player = start;
+            Enemy = goal;
             PassableCount = passableCount;
-            Agents = agents;
-            Goal = goal;
             Grids = grids;
         }
     }
@@ -75,7 +84,8 @@ namespace Visualizer.MapEditor
                 }
             }
 
-            currentMapData = new MapData(width, height, passableCount, mapData.EndPoints, mapData.Goal, mapIds);
+            currentMapData = new MapData(width, height, passableCount, mapData.Start, mapData.Goal, mapIds);
+            
 
             return currentMapData;
         }

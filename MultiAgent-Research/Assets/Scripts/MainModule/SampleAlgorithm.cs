@@ -13,16 +13,9 @@ namespace MainModule
             pathFinder = new ConstrainedAStar(graph, nodes);
         }
 
-        public List<(int agentIndex, List<int> path)> Solve(List<AgentContext> contexts)
+        public List<int> Solve(int start, int goal)
         {
-            var result = new List<(int agentIndex, List<int> path)>(contexts.Count);
-            
-            foreach (AgentContext context in contexts)
-            {
-                result.Add((context.AgentIndex, pathFinder.FindPath(context.Position, context.Goal).Select(node => node.Index).ToList())); 
-            }
-
-            return result;
+            return pathFinder.FindPath(start, goal).Select(node => node.Index).ToList();
         }
     }
 }
