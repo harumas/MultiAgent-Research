@@ -19,23 +19,17 @@ namespace PathFinding.Algorithm
             pathFinder = new ConstrainedAStar(graph, CreateNodes(graph));
         }
 
-        public List<(int agentIndex, List<int> path)> Solve(List<AgentContext> contexts)
+
+        public List<int> Solve(int start, int goal)
         {
-            var result = new List<(int agentIndex, List<int> path)>(contexts.Count);
-
             // エージェントの半分の目標地点を設定
-            AssignHalfGoal(contexts);
+            int halfGoal = CalculateHalfGoal(start, goal);
 
-            foreach (AgentContext context in contexts)
-            {
-                // 経路探索
-                List<Node> path = pathFinder.FindPath(context.Position, context.Goal);
+            // 経路探索
+            List<Node> path = pathFinder.FindPath(start, halfGoal);
 
-                // ノードに変換して結果に追加
-                result.Add((context.AgentIndex, path.Select(node => node.Index).ToList()));
-            }
-
-            return result;
+            // ノードに変換して結果に追加
+            return path.Select(node => node.Index).ToList();
         }
 
         private List<Node> CreateNodes(Graph graph)
@@ -52,43 +46,40 @@ namespace PathFinding.Algorithm
             return nodes;
         }
 
-        private void AssignHalfGoal(List<AgentContext> contexts)
+        private int CalculateHalfGoal(int startPos, int goalPos)
         {
-            Vector2Int goal = mediator.GetPos(contexts[0].Goal);
+            Vector2Int goal = mediator.GetPos(goalPos);
 
-            for (var i = 0; i < contexts.Count; i++)
+            Vector2Int agentPosition = mediator.GetPos(startPos);
+            Vector2Int diff = goal - agentPosition;
+
+            // 中点を計算
+            Vector2 bullet = new Vector2(agentPosition.x, agentPosition.y) + new Vector2(diff.x * 0.5f, diff.y * 0.5f);
+
+            // グリッド上の座標に変換
+            Vector2Int point = new Vector2Int((int)Math.Round(bullet.x), (int)Math.Round(bullet.y));
+            Vector2Int result = goal;
+
+            if ((grids[point.y, point.x] & GridType.Obstacle) == 0)
             {
-                Vector2Int agentPosition = mediator.GetPos(contexts[i].Position);
-                Vector2Int diff = goal - agentPosition;
-                
-                // 中点を計算
-                Vector2 bullet = new Vector2(agentPosition.x, agentPosition.y) + new Vector2(diff.x * 0.5f, diff.y * 0.5f);
-                
-                // グリッド上の座標に変換
-                Vector2Int point = new Vector2Int((int)Math.Round(bullet.x), (int)Math.Round(bullet.y));
-                Vector2Int result = goal;
-
-                if ((grids[point.y, point.x] & GridType.Obstacle) == 0)
-                {
-                    result = point;
-                }
-                else
-                {
-                    Vector2Int? nearestGoal = FindNearestGoal(grids, point);
-
-                    if (nearestGoal != null)
-                    {
-                        if (nearestGoal == agentPosition)
-                        {
-                            nearestGoal = goal;
-                        }
-
-                        result = nearestGoal.Value;
-                    }
-                }
-
-                contexts[i] = new AgentContext(contexts[i].AgentIndex, contexts[i].Position, mediator.GetNode(result));
+                result = point;
             }
+            else
+            {
+                Vector2Int? nearestGoal = FindNearestGoal(grids, point);
+
+                if (nearestGoal != null)
+                {
+                    if (nearestGoal == agentPosition)
+                    {
+                        nearestGoal = goal;
+                    }
+
+                    result = nearestGoal.Value;
+                }
+            }
+
+            return mediator.GetNode(result);
         }
 
         // 幅優先探索で障害物を避け、最も近い通行可能なセルを見つける関数

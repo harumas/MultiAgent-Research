@@ -26,21 +26,12 @@ namespace MainModule
         private GridGraphMediator mediator;
         private ISolver solver;
         private Agent player;
-        private List<Agent> moveAgents;
-        private List<AgentContext> contexts;
+        private Agent enemy;
 
         private void Start()
         {
             // マップデータの読み込み
             MapData mapData = mapDataManager.Load();
-
-            if (!mapData.IsValid())
-            {
-                Debug.LogError("初期化に失敗しました");
-                return;
-            }
-
-
             mediator = new GridGraphMediator(mapData);
 
             //ビジュアライザーの初期化
@@ -54,10 +45,9 @@ namespace MainModule
             solver = CreateSolver(graph, mapData.Grids);
 
             // エージェントの作成
-            (player, moveAgents) = agentFactory.CreateAgents(mapData);
+            (player, enemy) = agentFactory.CreateAgents(mapData);
 
             // 解決
-            contexts = CreateContexts(mapData.Agents, mapData.Goal);
             Solve(mapData.Grids);
         }
 
@@ -77,69 +67,83 @@ namespace MainModule
         private void Solve(GridType[,] grids)
         {
             // 経路探索を実行
-            var result = solver.Solve(contexts);
+            var path = solver.Solve(mediator.GetNode(enemy.Position), mediator.GetNode(player.Position));
 
             // パスデータを書き込む
-            PaintPath(grids, result);
+            PaintPath(grids, path);
+            PaintCircle(grids, enemy.Position, 5);
 
-            foreach ((int agentIndex, List<int> path) in result)
-            {
-                var waypoints = path.Select(node => mediator.GetPos(node)).ToList();
-                moveAgents[agentIndex].SetWaypoints(waypoints);
-            }
+            var waypoints = path.Select(node => mediator.GetPos(node)).ToList();
+            enemy.SetWaypoints(waypoints);
         }
 
-        private List<AgentContext> CreateContexts(IReadOnlyList<Vector2Int> agentPoints, Vector2Int goal)
+        private void PaintPath(GridType[,] grids, List<int> path)
         {
-            List<AgentContext> contexts = new List<AgentContext>(agentPoints.Count);
+            RemoveFlags(grids, GridType.Path);
 
-            for (var i = 0; i < moveAgents.Count; i++)
+            foreach (int index in path)
             {
-                int agentNode = mediator.GetNode(agentPoints[i]);
-                int goalNode = mediator.GetNode(goal);
-
-                contexts.Add(new AgentContext(i, agentNode, goalNode));
-            }
-
-            return contexts;
-        }
-
-        private void UpdateContexts(List<AgentContext> contexts, Vector2Int goal)
-        {
-            player.SetWaypoints(new List<Vector2Int>(1) { goal });
-
-            for (var i = 0; i < moveAgents.Count; i++)
-            {
-                int agentNode = mediator.GetNode(moveAgents[i].Position);
-                int goalNode = mediator.GetNode(goal);
-
-                contexts[i] = new AgentContext(contexts[i].AgentIndex, agentNode, goalNode);
+                Vector2Int pos = mediator.GetPos(index);
+                grids[pos.y, pos.x] |= GridType.Path;
             }
         }
 
-        private void PaintPath(GridType[,] grids, List<(int agentIndex, List<int> path)> result)
-        {
-            RemovePathData(grids);
-
-            foreach (List<int> path in result.Select(item => item.path))
-            {
-                foreach (int index in path)
-                {
-                    Vector2Int pos = mediator.GetPos(index);
-                    grids[pos.y, pos.x] |= GridType.Path;
-                }
-            }
-        }
-
-        private void RemovePathData(GridType[,] grids)
+        private void RemoveFlags(GridType[,] grids, GridType type)
         {
             for (int y = 0; y < grids.GetLength(0); y++)
             {
                 for (int x = 0; x < grids.GetLength(1); x++)
                 {
-                    grids[y, x] &= ~GridType.Path;
+                    grids[y, x] &= ~type;
                 }
             }
+        }
+
+        private void PaintCircle(GridType[,] grids, Vector2Int center, int radius)
+        {
+            RemoveFlags(grids, GridType.Circle);
+
+            Vector2Int pos = new Vector2Int(0, 0);
+            int d = 0;
+
+            d = 3 - 2 * radius;
+            pos.y = radius;
+
+            SetCirclePoint(grids, center.x, radius + center.y);
+            SetCirclePoint(grids, center.x, -radius + center.y);
+            SetCirclePoint(grids, radius + center.x, center.y);
+            SetCirclePoint(grids, -radius + center.x, center.y);
+
+            for (pos.x = 0; pos.x <= pos.y; pos.x++)
+            {
+                if (d < 0)
+                {
+                    d += 6 + 4 * pos.x;
+                }
+                else
+                {
+                    d += 10 + 4 * pos.x - 4 * pos.y--;
+                }
+
+                SetCirclePoint(grids, pos.y + center.x, pos.x + center.y);
+                SetCirclePoint(grids, pos.x + center.x, pos.y + center.y);
+                SetCirclePoint(grids, -pos.x + center.x, pos.y + center.y);
+                SetCirclePoint(grids, -pos.y + center.x, pos.x + center.y);
+                SetCirclePoint(grids, -pos.y + center.x, -pos.x + center.y);
+                SetCirclePoint(grids, -pos.x + center.x, -pos.y + center.y);
+                SetCirclePoint(grids, pos.x + center.x, -pos.y + center.y);
+                SetCirclePoint(grids, pos.y + center.x, -pos.x + center.y);
+            }
+        }
+
+        private void SetCirclePoint(GridType[,] grids, int x, int y)
+        {
+            if (x < 0 || x >= grids.GetLength(1) || y < 0 || y >= grids.GetLength(0))
+            {
+                return;
+            }
+
+            grids[y, x] |= GridType.Circle;
         }
 
         private ObstacleMapConvertJob convertJob = new ObstacleMapConvertJob();
@@ -178,7 +182,7 @@ namespace MainModule
 
             if (input.x != 0 || input.y != 0)
             {
-                UpdateContexts(contexts, goal);
+                player.SetWaypoints(new List<Vector2Int>(1) { goal });
                 Solve(grids);
             }
         }

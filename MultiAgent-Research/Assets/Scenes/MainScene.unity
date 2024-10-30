@@ -589,7 +589,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6b8a05692ae4b64c9c9c9acd91ca7a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  solverType: 1
+  solverType: 0
   mapDataManager: {fileID: 1518213659}
   agentFactory: {fileID: 1225256725}
   visualizer: {fileID: 808944336}

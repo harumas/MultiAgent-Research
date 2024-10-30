@@ -12,9 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ab1a537c347721499487902d59b03dc, type: 3}
   m_Name: MapData1
   m_EditorClassIdentifier: 
-  endPoints:
-  - {x: 24, y: 24}
-  goal: {x: 1, y: 5}
+  start:
+    x: 1
+    y: 1
+  goal:
+    x: 1
+    y: 5
   data: '******************************
 
     *............................*

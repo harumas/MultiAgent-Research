@@ -10,7 +10,8 @@ namespace PathFinding
     {
         Road = 1,
         Obstacle = 2,
-        Path = 4
+        Path = 4,
+        Circle = 8,
     }
 
     public class MapData
@@ -18,32 +19,27 @@ namespace PathFinding
         public readonly int Height;
         public readonly int Width;
         public readonly int PassableCount;
-        public readonly IReadOnlyList<Vector2Int> Agents;
-        public readonly Vector2Int Goal;
+        public readonly Vector2Int Player;
+        public readonly Vector2Int Enemy;
         public readonly GridType[,] Grids;
 
-        public MapData(int height, int width, int passableCount, IReadOnlyList<Vector2Int> agents, Vector2Int goal, GridType[,] grids)
+        public MapData(
+            int height,
+            int width,
+            int passableCount,
+            Vector2Int start,
+            Vector2Int goal,
+            GridType[,] grids
+        )
         {
             Height = height;
             Width = width;
+            Player = start;
+            Enemy = goal;
             PassableCount = passableCount;
-            Agents = agents;
-            Goal = goal;
             Grids = grids;
         }
-
-        public bool IsValid()
-        {
-            var agents = Agents;
-            bool isUniqueStarts = !agents.GroupBy(p => p).SelectMany(g => g.Skip(1)).Any();
-
-            if (!isUniqueStarts)
-            {
-                throw new ArgumentException("スタートのデータが重複しています。");
-            }
-
-            return true;
-        }
     }
+
 
 }

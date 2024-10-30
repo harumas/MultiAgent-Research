@@ -45,5 +45,10 @@ namespace PathFinding.Algorithm
 
             return nodes;
         }
+
+        public List<int> Solve(int start, int goal)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
