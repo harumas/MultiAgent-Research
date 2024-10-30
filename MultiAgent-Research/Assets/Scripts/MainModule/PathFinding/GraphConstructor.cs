@@ -22,10 +22,10 @@ namespace PathFinding
             new Vector2Int(0, -1),
 
             // 斜め移動
-            // new Vector2Int(1, 1),
-            // new Vector2Int(-1, -1),
-            // new Vector2Int(-1, 1),
-            // new Vector2Int(1, -1),
+            new Vector2Int(1, 1),
+            new Vector2Int(-1, -1),
+            new Vector2Int(-1, 1),
+            new Vector2Int(1, -1),
         };
 
         public Graph ConstructGraph()

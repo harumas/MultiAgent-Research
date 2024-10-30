@@ -14,6 +14,8 @@ namespace PathFinder.Core
             this.y = y;
         }
 
+        public static implicit operator Vector2Int(Vector2 v) => new Vector2Int((int)v.x, (int)v.y);
+
         public static Vector2 operator +(Vector2 a, Vector2 b)
         {
             return new Vector2(a.x + b.x, a.y + b.y);
@@ -61,6 +63,9 @@ namespace PathFinder.Core
             this.x = x;
             this.y = y;
         }
+        
+        
+        public static implicit operator Vector2(Vector2Int v) => new Vector2(v.x, v.y);
 
         public static Vector2Int operator +(Vector2Int a, Vector2Int b)
         {

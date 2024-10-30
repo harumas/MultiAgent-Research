@@ -31,13 +31,13 @@ namespace Visualizer
                 {
                     TextureData[i] = pathColor;
                 }
-                else if (HasBitFlag(id, GridType.Obstacle))
-                {
-                    TextureData[i] = obstacleColor;
-                }
                 else if (HasBitFlag(id, GridType.Circle))
                 {
                     TextureData[i] = circleColor;
+                }
+                else if (HasBitFlag(id, GridType.Obstacle))
+                {
+                    TextureData[i] = obstacleColor;
                 }
                 else if (HasBitFlag(id, GridType.Road))
                 {

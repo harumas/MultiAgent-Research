@@ -68,23 +68,24 @@ namespace MainModule
         {
             // 経路探索を実行
             var path = solver.Solve(mediator.GetNode(enemy.Position), mediator.GetNode(player.Position));
+            var sampleAlgorithm = (solver as SampleAlgorithm);
 
             // パスデータを書き込む
-            PaintPath(grids, path);
-            PaintCircle(grids, enemy.Position, 5);
+            UpdatePaint(grids, path, GridType.Path);
+            UpdatePaint(grids, sampleAlgorithm.RangeGoals.SelectMany(item => item), GridType.Circle);
 
             var waypoints = path.Select(node => mediator.GetPos(node)).ToList();
             enemy.SetWaypoints(waypoints);
         }
 
-        private void PaintPath(GridType[,] grids, List<int> path)
+        private void UpdatePaint(GridType[,] grids, IEnumerable<int> data, GridType type)
         {
-            RemoveFlags(grids, GridType.Path);
+            RemoveFlags(grids, type);
 
-            foreach (int index in path)
+            foreach (int index in data)
             {
                 Vector2Int pos = mediator.GetPos(index);
-                grids[pos.y, pos.x] |= GridType.Path;
+                grids[pos.y, pos.x] |= type;
             }
         }
 
@@ -96,43 +97,6 @@ namespace MainModule
                 {
                     grids[y, x] &= ~type;
                 }
-            }
-        }
-
-        private void PaintCircle(GridType[,] grids, Vector2Int center, int radius)
-        {
-            RemoveFlags(grids, GridType.Circle);
-
-            Vector2Int pos = new Vector2Int(0, 0);
-            int d = 0;
-
-            d = 3 - 2 * radius;
-            pos.y = radius;
-
-            SetCirclePoint(grids, center.x, radius + center.y);
-            SetCirclePoint(grids, center.x, -radius + center.y);
-            SetCirclePoint(grids, radius + center.x, center.y);
-            SetCirclePoint(grids, -radius + center.x, center.y);
-
-            for (pos.x = 0; pos.x <= pos.y; pos.x++)
-            {
-                if (d < 0)
-                {
-                    d += 6 + 4 * pos.x;
-                }
-                else
-                {
-                    d += 10 + 4 * pos.x - 4 * pos.y--;
-                }
-
-                SetCirclePoint(grids, pos.y + center.x, pos.x + center.y);
-                SetCirclePoint(grids, pos.x + center.x, pos.y + center.y);
-                SetCirclePoint(grids, -pos.x + center.x, pos.y + center.y);
-                SetCirclePoint(grids, -pos.y + center.x, pos.x + center.y);
-                SetCirclePoint(grids, -pos.y + center.x, -pos.x + center.y);
-                SetCirclePoint(grids, -pos.x + center.x, -pos.y + center.y);
-                SetCirclePoint(grids, pos.x + center.x, -pos.y + center.y);
-                SetCirclePoint(grids, pos.y + center.x, -pos.x + center.y);
             }
         }
 

@@ -31,6 +31,25 @@ namespace PathFinding
             return indexNodeList[index];
         }
 
+
+        public bool TryGetNode(Vector2Int pos, out int node)
+        {
+            if (pos.x < 0 || pos.x >= mapData.Width || pos.y < 0 || pos.y >= mapData.Height)
+            {
+                node = -1;
+                return false;
+            }
+
+            if ((mapData.Grids[pos.y, pos.x] & GridType.Road) != 0)
+            {
+                node = GetNode(pos);
+                return true;
+            }
+
+            node = -1;
+            return false;
+        }
+
         /// <summary>
         /// ノードインデックスから2次元座標を取得します
         /// </summary>
