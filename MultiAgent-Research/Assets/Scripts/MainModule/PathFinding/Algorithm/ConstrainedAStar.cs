@@ -20,7 +20,8 @@ namespace PathFinding.Algorithm
 
         public List<Node> FindPath(
             int start,
-            int end
+            HashSet<int> end,
+            Vector2 target
         )
         {
             ResetNodes();
@@ -28,11 +29,10 @@ namespace PathFinding.Algorithm
             var closedList = new HashSet<int>();
 
             Node startNode = nodes[start];
-            Node targetNode = nodes[end];
 
             //初期ノードの作成
             startNode.Time = 0;
-            startNode.H = Heuristic(startNode, targetNode);
+            startNode.H = Heuristic(startNode, target);
             openList.Enqueue((0, startNode));
             closedList.Add(startNode.Index);
 
@@ -44,7 +44,7 @@ namespace PathFinding.Algorithm
                 Node node = openList.Dequeue().node;
 
                 //ゴールに到達したら
-                if (node.Index == targetNode.Index)
+                if (end.Contains(node.Index))
                 {
                     //親まで辿ってパスを返す
                     var r = RetracePath(node);
@@ -65,10 +65,10 @@ namespace PathFinding.Algorithm
                     {
                         continue;
                     }
-                    
+
                     Node neighbour = nodes[neighbourIndex];
 
-                    neighbour.H = Heuristic(neighbour, targetNode);
+                    neighbour.H = Heuristic(neighbour, target);
                     neighbour.Time = node.Time + 1;
                     neighbour.Parent = node;
 
@@ -76,13 +76,13 @@ namespace PathFinding.Algorithm
                 }
             }
 
-            //パスを見つけられなかったらnull
-            return null;
+            //パスを見つけられなかったら0
+            return new List<Node>();
         }
 
-        private float Heuristic(Node nodeA, Node nodeB)
+        private float Heuristic(Node nodeA, Vector2 target)
         {
-            Vector2 ab = nodeA.Position - nodeB.Position;
+            Vector2 ab = target - nodeA.Position;
             float magnitude = ab.x * ab.x + ab.y * ab.y;
             return magnitude;
         }

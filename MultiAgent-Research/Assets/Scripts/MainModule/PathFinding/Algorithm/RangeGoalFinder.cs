@@ -15,20 +15,27 @@ namespace PathFinding.Algorithm
             this.mediator = mediator;
         }
 
-        public List<List<int>> GetRangeGoals(Vector2Int center, int radius)
+        /// <summary>
+        /// 範囲ゴールを探索します
+        /// </summary>
+        public List<HashSet<int>> GetRangeGoals(Vector2Int center, int radius)
         {
-            List<List<int>> rangeGoals = new List<List<int>>();
+            var rangeGoals = new List<HashSet<int>>();
+
+            //円周上のグリッドを取得する
             var circleNodes = CalculateCircleNodes(center, radius);
 
             while (circleNodes.Count > 0)
             {
+                //範囲ゴールを追加
                 int first = circleNodes.First();
-                var rangeGoal = new List<int> { first };
+                var rangeGoal = new HashSet<int>() { first };
                 rangeGoals.Add(rangeGoal);
 
                 Queue<int> open = new Queue<int>();
                 open.Enqueue(first);
 
+                //繋がっているグリッドを探索する
                 while (open.Count > 0)
                 {
                     int current = open.Dequeue();

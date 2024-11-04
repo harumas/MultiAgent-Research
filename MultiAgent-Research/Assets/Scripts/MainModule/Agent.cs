@@ -28,6 +28,11 @@ namespace MainModule
 
         public void SetWaypoints(List<Vector2Int> gridPositions)
         {
+            if (gridPositions.Count == 0)
+            {
+                return;
+            }
+            
             this.gridPositions = gridPositions;
             moveCount = 0;
             agentPosition = GetAgentPos(gridPositions[moveCount]);

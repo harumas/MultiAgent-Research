@@ -26,6 +26,11 @@ namespace PathFinder.Core
             return new Vector2(a.x - b.x, a.y - b.y);
         }
 
+        public static Vector2 operator /(Vector2 a, float b)
+        {
+            return new Vector2(a.x / b, a.y / b);
+        }
+
         public static bool operator ==(Vector2 a, Vector2 b)
         {
             return a.x == b.x && a.y == b.y;
@@ -63,8 +68,8 @@ namespace PathFinder.Core
             this.x = x;
             this.y = y;
         }
-        
-        
+
+
         public static implicit operator Vector2(Vector2Int v) => new Vector2(v.x, v.y);
 
         public static Vector2Int operator +(Vector2Int a, Vector2Int b)
@@ -75,6 +80,11 @@ namespace PathFinder.Core
         public static Vector2Int operator -(Vector2Int a, Vector2Int b)
         {
             return new Vector2Int(a.x - b.x, a.y - b.y);
+        }
+
+        public static Vector2 operator /(Vector2Int a, float b)
+        {
+            return new Vector2(a.x / b, a.y / b);
         }
 
         public static bool operator ==(Vector2Int a, Vector2Int b)

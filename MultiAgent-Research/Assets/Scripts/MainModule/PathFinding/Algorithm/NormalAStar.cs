@@ -4,7 +4,7 @@ using PathFinder.Core;
 
 namespace PathFinding.Algorithm
 {
-     public class NormalAStar : ISolver
+    public class NormalAStar : ISolver
     {
         private readonly GridGraphMediator mediator;
         private readonly ConstrainedAStar pathFinder;
@@ -16,20 +16,10 @@ namespace PathFinding.Algorithm
             pathFinder = new ConstrainedAStar(graph, CreateNodes(graph));
         }
 
-        public List<(int agentIndex, List<int> path)> Solve(List<AgentContext> contexts)
+        public List<int> Solve(int start, int goal)
         {
-            var result = new List<(int agentIndex, List<int> path)>(contexts.Count);
-
-            foreach (AgentContext context in contexts)
-            {
-                // 経路探索
-                List<Node> path = pathFinder.FindPath(context.Position, context.Goal);
-
-                // ノードに変換して結果に追加
-                result.Add((context.AgentIndex, path.Select(node => node.Index).ToList()));
-            }
-
-            return result;
+            List<Node> path = pathFinder.FindPath(start, new HashSet<int>() { goal }, mediator.GetPos(goal));
+            return path.Select(node => node.Index).ToList();
         }
 
         private List<Node> CreateNodes(Graph graph)
@@ -44,11 +34,6 @@ namespace PathFinding.Algorithm
             }
 
             return nodes;
-        }
-
-        public List<int> Solve(int start, int goal)
-        {
-            throw new System.NotImplementedException();
         }
     }
 }

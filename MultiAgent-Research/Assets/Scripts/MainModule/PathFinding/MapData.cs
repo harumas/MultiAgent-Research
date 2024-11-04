@@ -11,7 +11,8 @@ namespace PathFinding
         Road = 1,
         Obstacle = 2,
         Path = 4,
-        Circle = 8,
+        CorrectCircle = 8,
+        IncorrectCircle = 16,
     }
 
     public class MapData

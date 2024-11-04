@@ -12,8 +12,8 @@ namespace MainModule
 {
     public enum SolverType
     {
-        MySolver,
-        NormalAStar
+        RangeGoal,
+        AStar
     }
 
     public class Starter : MonoBehaviour
@@ -42,7 +42,7 @@ namespace MainModule
             Graph graph = constructor.ConstructGraph();
 
             // ソルバーの作成
-            solver = CreateSolver(graph, mapData.Grids);
+            solver = CreateSolver(graph);
 
             // エージェントの作成
             (player, enemy) = agentFactory.CreateAgents(mapData);
@@ -51,13 +51,13 @@ namespace MainModule
             Solve(mapData.Grids);
         }
 
-        private ISolver CreateSolver(Graph graph, GridType[,] grids)
+        private ISolver CreateSolver(Graph graph)
         {
             switch (solverType)
             {
-                case SolverType.MySolver:
-                    return new SampleAlgorithm(graph, grids, mediator);
-                case SolverType.NormalAStar:
+                case SolverType.RangeGoal:
+                    return new RangeGoalAlgorithm(graph, mediator);
+                case SolverType.AStar:
                     return new NormalAStar(graph, mediator);
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -68,11 +68,16 @@ namespace MainModule
         {
             // 経路探索を実行
             var path = solver.Solve(mediator.GetNode(enemy.Position), mediator.GetNode(player.Position));
-            var sampleAlgorithm = (solver as SampleAlgorithm);
 
             // パスデータを書き込む
             UpdatePaint(grids, path, GridType.Path);
-            UpdatePaint(grids, sampleAlgorithm.RangeGoals.SelectMany(item => item), GridType.Circle);
+
+            // 円のデータを書き込む
+            if (solver is RangeGoalAlgorithm algorithm)
+            {
+                UpdatePaint(grids, algorithm.CorrectGoals.Select(item => item), GridType.CorrectCircle);
+                UpdatePaint(grids, algorithm.IncorrectGoals.Select(item => item), GridType.IncorrectCircle);
+            }
 
             var waypoints = path.Select(node => mediator.GetPos(node)).ToList();
             enemy.SetWaypoints(waypoints);
@@ -98,16 +103,6 @@ namespace MainModule
                     grids[y, x] &= ~type;
                 }
             }
-        }
-
-        private void SetCirclePoint(GridType[,] grids, int x, int y)
-        {
-            if (x < 0 || x >= grids.GetLength(1) || y < 0 || y >= grids.GetLength(0))
-            {
-                return;
-            }
-
-            grids[y, x] |= GridType.Circle;
         }
 
         private ObstacleMapConvertJob convertJob = new ObstacleMapConvertJob();
