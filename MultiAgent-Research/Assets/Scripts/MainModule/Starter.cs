@@ -28,6 +28,31 @@ namespace MainModule
         private Agent player;
         private Agent enemy;
 
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red;
+            if (solver is RangeGoalAlgorithm algorithm)
+            {
+                foreach (Vector2Int t in algorithm.targets)
+                {
+                    Gizmos.DrawLine(new Vector3((float)player.Position.x, (float)player.Position.y, 0f) * 0.3f - Vector3.one * 4.5f,
+                        new Vector3((float)t.x, (float)t.y, 0f) * 0.3f - Vector3.one * 4.5f);
+                }
+
+                foreach (Vector2Int t in algorithm.vs)
+                {
+                    Vector3 origin = new Vector3((float)player.Position.x, (float)player.Position.y, 0f) * 0.3f - Vector3.one * 4.5f;
+                    Gizmos.DrawLine(origin,
+                        new Vector3((float)t.x + player.Position.x, (float)t.y + player.Position.y, 0f) * 0.3f - Vector3.one * 4.5f);
+                }
+
+                foreach (Vector2Int point in algorithm.points)
+                {
+                    Gizmos.DrawSphere(new Vector3(point.x, point.y) * 0.3f - Vector3.one * 4.5f, 0.05f);
+                }
+            }
+        }
+
         private void Start()
         {
             // マップデータの読み込み
@@ -70,13 +95,14 @@ namespace MainModule
             var path = solver.Solve(mediator.GetNode(enemy.Position), mediator.GetNode(player.Position));
 
             // パスデータを書き込む
-            UpdatePaint(grids, path, GridType.Path);
+            //UpdatePaint(grids, path, GridType.Path);
 
             // 円のデータを書き込む
             if (solver is RangeGoalAlgorithm algorithm)
             {
                 UpdatePaint(grids, algorithm.CorrectGoals.Select(item => item), GridType.CorrectCircle);
                 UpdatePaint(grids, algorithm.IncorrectGoals.Select(item => item), GridType.IncorrectCircle);
+                //UpdatePaint(grids, algorithm.DebugPaths.SelectMany(item => item), GridType.DebugPath);
             }
 
             var waypoints = path.Select(node => mediator.GetPos(node)).ToList();

@@ -13,6 +13,10 @@ namespace PathFinding.Algorithm
 
         public HashSet<int> CorrectGoals;
         public HashSet<int> IncorrectGoals;
+        public List<List<int>> DebugPaths = new List<List<int>>();
+        public List<Vector2> targets = new List<Vector2>();
+        public List<Vector2> vs = new List<Vector2>();
+        public List<Vector2Int> points = new List<Vector2Int>();
 
         public RangeGoalAlgorithm(Graph graph, GridGraphMediator mediator)
         {
@@ -24,6 +28,11 @@ namespace PathFinding.Algorithm
 
         public List<int> Solve(int start, int goal)
         {
+            DebugPaths.Clear();
+            targets.Clear();
+            points.Clear();
+            vs.Clear();
+
             Vector2Int startPos = mediator.GetPos(start);
             Vector2Int goalPos = mediator.GetPos(goal);
 
@@ -46,17 +55,25 @@ namespace PathFinding.Algorithm
                 Vector2Int target = default;
                 foreach (int index in rangeGoal)
                 {
-                    target += mediator.GetPos(index);
+                    points.Add(mediator.GetPos(index));
+                    vs.Add(mediator.GetPos(index) - goalPos);
+                    target += mediator.GetPos(index) - goalPos;
                 }
 
+                Vector2 heuristic = ((Vector2)target).Normalize() * radius;
+
+                targets.Add(heuristic);
+
                 // ゴールから範囲ゴールまでの経路を求める
-                List<Node> path = pathFinder.FindPath(goal, rangeGoal, target);
+                List<Node> path = pathFinder.FindPath(goal, rangeGoal, heuristic);
 
                 // 経路が範囲ゴールの半径に収まっているか
                 bool isCorrectPath = path
                     .Select(node => node.Position - (Vector2)goalPos)
                     .Select(v => v.x * v.x + v.y * v.y)
                     .All(d => d <= radius * radius);
+
+                DebugPaths.Add(path.Select(node => node.Index).ToList());
 
                 // 収まっていたら到達可能な範囲ゴールに含める
                 if (isCorrectPath)

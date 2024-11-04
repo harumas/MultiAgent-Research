@@ -69,7 +69,7 @@ namespace MainModule
                 {
                     GridType v = mapIds[i, j];
                     index = i * width + j + i;
-                    str[index] = v == GridType.Road ? '.' : '*';
+                    str[index] = (v & GridType.Obstacle) != 0 ? '*' : '.';
                 }
 
                 str[index + 1] = '\n';

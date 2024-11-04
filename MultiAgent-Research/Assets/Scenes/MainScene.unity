@@ -651,8 +651,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8c985fe4af1482c81e6b62fbaa76cf9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultHeight: 30
-  defaultWidth: 30
+  defaultHeight: 20
+  defaultWidth: 20
   mapData: {fileID: 11400000, guid: f3a6af2636d1ddb4080af1cd18e604e9, type: 2}
 --- !u!1 &1947067357
 GameObject:

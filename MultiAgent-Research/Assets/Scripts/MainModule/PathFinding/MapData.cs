@@ -13,6 +13,7 @@ namespace PathFinding
         Path = 4,
         CorrectCircle = 8,
         IncorrectCircle = 16,
+        DebugPath = 32,
     }
 
     public class MapData

@@ -26,6 +26,11 @@ namespace PathFinder.Core
             return new Vector2(a.x - b.x, a.y - b.y);
         }
 
+        public static Vector2 operator *(Vector2 a, float b)
+        {
+            return new Vector2(a.x * b, a.y * b);
+        }
+
         public static Vector2 operator /(Vector2 a, float b)
         {
             return new Vector2(a.x / b, a.y / b);
@@ -39,6 +44,12 @@ namespace PathFinder.Core
         public static bool operator !=(Vector2 a, Vector2 b)
         {
             return !(a == b);
+        }
+
+        public Vector2 Normalize()
+        {
+            double length = Math.Sqrt(x * x + y * y);
+            return new Vector2(x / (float)length, y / (float)length);
         }
 
         public bool Equals(Vector2 other)
@@ -96,6 +107,7 @@ namespace PathFinder.Core
         {
             return !(a == b);
         }
+
 
         public bool Equals(Vector2Int other)
         {

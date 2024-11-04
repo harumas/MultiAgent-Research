@@ -37,8 +37,6 @@ namespace PathFinding.Algorithm
             closedList.Add(startNode.Index);
 
             // 待機し続けた時に打ち切る
-            int timeout = graph.NodeCount;
-
             while (openList.Count > 0)
             {
                 Node node = openList.Dequeue().node;
@@ -50,11 +48,6 @@ namespace PathFinding.Algorithm
                     var r = RetracePath(node);
 
                     return r;
-                }
-
-                if (timeout < node.Time)
-                {
-                    continue;
                 }
 
                 List<int> nextNodes = graph.GetNextNodes(node.Index).ToList();
@@ -82,7 +75,7 @@ namespace PathFinding.Algorithm
 
         private float Heuristic(Node nodeA, Vector2 target)
         {
-            Vector2 ab = target - nodeA.Position;
+            Vector2 ab = nodeA.Position - target;
             float magnitude = ab.x * ab.x + ab.y * ab.y;
             return magnitude;
         }

@@ -15,6 +15,7 @@ namespace Visualizer
         private static readonly Color32 pathColor = new Color32(148, 255, 172, 255);
         private static readonly Color32 correctCircleColor = new Color32(255, 79, 106, 255);
         private static readonly Color32 incorrectCircleColor = new Color32(163, 163, 156, 255);
+        private static readonly Color32 debugPathColor = new Color32(89, 154, 223, 255);
 
         [BurstCompile]
         private unsafe struct ObstacleMapToTextureJob : IJobParallelFor
@@ -31,6 +32,10 @@ namespace Visualizer
                 if (HasBitFlag(id, GridType.Path))
                 {
                     TextureData[i] = pathColor;
+                }
+                else if (HasBitFlag(id, GridType.DebugPath))
+                {
+                    TextureData[i] = debugPathColor;
                 }
                 else if (HasBitFlag(id, GridType.CorrectCircle))
                 {
