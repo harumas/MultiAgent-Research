@@ -61,7 +61,7 @@ namespace PathFinding.Algorithm
 
                     Node neighbour = nodes[neighbourIndex];
 
-                    neighbour.H = Heuristic(neighbour, target);
+                    neighbour.H = Heuristic(neighbour, target) * 0.01f;
                     neighbour.Time = node.Time + 1;
                     neighbour.Parent = node;
 

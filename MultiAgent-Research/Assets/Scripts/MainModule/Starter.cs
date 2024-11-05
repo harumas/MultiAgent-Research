@@ -13,6 +13,7 @@ namespace MainModule
     public enum SolverType
     {
         RangeGoal,
+        RangeGoalWithBFS,
         AStar
     }
 
@@ -30,22 +31,24 @@ namespace MainModule
 
         private void OnDrawGizmos()
         {
-            Gizmos.color = Color.red;
             if (solver is RangeGoalAlgorithm algorithm)
             {
+                Vector3 origin = new Vector3((float)player.Position.x, (float)player.Position.y, 0f) * 0.3f - Vector3.one * 4.5f;
+
+                Gizmos.color = Color.red;
                 foreach (Vector2Int t in algorithm.targets)
                 {
-                    Gizmos.DrawLine(new Vector3((float)player.Position.x, (float)player.Position.y, 0f) * 0.3f - Vector3.one * 4.5f,
+                    Gizmos.DrawLine(origin, new Vector3(t.x, t.y, 0f) * 0.3f - Vector3.one * 4.5f);
+                }
+
+                Gizmos.color = Color.blue;
+                foreach (Vector2Int t in algorithm.vs)
+                {
+                    Gizmos.DrawLine(origin,
                         new Vector3((float)t.x, (float)t.y, 0f) * 0.3f - Vector3.one * 4.5f);
                 }
 
-                foreach (Vector2Int t in algorithm.vs)
-                {
-                    Vector3 origin = new Vector3((float)player.Position.x, (float)player.Position.y, 0f) * 0.3f - Vector3.one * 4.5f;
-                    Gizmos.DrawLine(origin,
-                        new Vector3((float)t.x + player.Position.x, (float)t.y + player.Position.y, 0f) * 0.3f - Vector3.one * 4.5f);
-                }
-
+                Gizmos.color = Color.red;
                 foreach (Vector2Int point in algorithm.points)
                 {
                     Gizmos.DrawSphere(new Vector3(point.x, point.y) * 0.3f - Vector3.one * 4.5f, 0.05f);
@@ -82,6 +85,8 @@ namespace MainModule
             {
                 case SolverType.RangeGoal:
                     return new RangeGoalAlgorithm(graph, mediator);
+                case SolverType.RangeGoalWithBFS:
+                    return new RangeGoalAlgorithmWithBFS(graph, mediator);
                 case SolverType.AStar:
                     return new NormalAStar(graph, mediator);
                 default:
@@ -95,13 +100,20 @@ namespace MainModule
             var path = solver.Solve(mediator.GetNode(enemy.Position), mediator.GetNode(player.Position));
 
             // パスデータを書き込む
-            //UpdatePaint(grids, path, GridType.Path);
+            UpdatePaint(grids, path, GridType.Path);
 
             // 円のデータを書き込む
             if (solver is RangeGoalAlgorithm algorithm)
             {
                 UpdatePaint(grids, algorithm.CorrectGoals.Select(item => item), GridType.CorrectCircle);
                 UpdatePaint(grids, algorithm.IncorrectGoals.Select(item => item), GridType.IncorrectCircle);
+                //UpdatePaint(grids, algorithm.DebugPaths.SelectMany(item => item), GridType.DebugPath);
+            }
+
+            if (solver is RangeGoalAlgorithmWithBFS algorithmWithBfs)
+            {
+                UpdatePaint(grids, algorithmWithBfs.CorrectGoals.Select(item => item), GridType.CorrectCircle);
+                UpdatePaint(grids, algorithmWithBfs.IncorrectGoals.Select(item => item), GridType.IncorrectCircle);
                 //UpdatePaint(grids, algorithm.DebugPaths.SelectMany(item => item), GridType.DebugPath);
             }
 

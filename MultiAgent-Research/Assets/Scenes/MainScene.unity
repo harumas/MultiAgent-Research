@@ -589,7 +589,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6b8a05692ae4b64c9c9c9acd91ca7a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  solverType: 0
+  solverType: 1
   mapDataManager: {fileID: 1518213659}
   agentFactory: {fileID: 1225256725}
   visualizer: {fileID: 808944336}
@@ -651,9 +651,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8c985fe4af1482c81e6b62fbaa76cf9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultHeight: 20
-  defaultWidth: 20
-  mapData: {fileID: 11400000, guid: f3a6af2636d1ddb4080af1cd18e604e9, type: 2}
+  defaultHeight: 100
+  defaultWidth: 100
+  mapData: {fileID: 11400000, guid: 9a42f8f8333920d40a496a34c2c11ad8, type: 2}
 --- !u!1 &1947067357
 GameObject:
   m_ObjectHideFlags: 0

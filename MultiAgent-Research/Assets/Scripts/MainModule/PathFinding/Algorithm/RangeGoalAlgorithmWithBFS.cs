@@ -5,10 +5,11 @@ using PathFinder.Core;
 
 namespace PathFinding.Algorithm
 {
-    public class RangeGoalAlgorithm : ISolver
+    public class RangeGoalAlgorithmWithBFS : ISolver
     {
         private readonly GridGraphMediator mediator;
         private readonly ConstrainedAStar pathFinder;
+        private readonly BFS bfs;
         private readonly RangeGoalFinder rangeGoalFinder;
 
         public HashSet<int> CorrectGoals;
@@ -18,11 +19,12 @@ namespace PathFinding.Algorithm
         public List<Vector2> vs = new List<Vector2>();
         public List<Vector2Int> points = new List<Vector2Int>();
 
-        public RangeGoalAlgorithm(Graph graph, GridGraphMediator mediator)
+        public RangeGoalAlgorithmWithBFS(Graph graph, GridGraphMediator mediator)
         {
             this.mediator = mediator;
 
             pathFinder = new ConstrainedAStar(graph, CreateNodes(graph));
+            bfs = new BFS(graph, CreateNodes(graph));
             rangeGoalFinder = new RangeGoalFinder(graph, mediator);
         }
 
@@ -47,44 +49,7 @@ namespace PathFinding.Algorithm
             List<HashSet<int>> rangeGoals = rangeGoalFinder.GetRangeGoals(goalPos, radius);
 
             // 到達可能な範囲ゴール
-            HashSet<int> correctRangeGoal = new HashSet<int>();
-
-            foreach (HashSet<int> rangeGoal in rangeGoals)
-            {
-                // 範囲ゴールの方向を求める
-                Vector2Int target = default;
-                foreach (int index in rangeGoal)
-                {
-                    points.Add(mediator.GetPos(index));
-                    vs.Add(mediator.GetPos(index));
-                    target += mediator.GetPos(index);
-                }
-
-                Vector2 heuristic = ((Vector2)target).Normalize() * radius * 2f;
-
-                targets.Add(heuristic);
-
-                // ゴールから範囲ゴールまでの経路を求める
-                List<Node> path = pathFinder.FindPath(goal, rangeGoal, heuristic);
-
-                // 境界のグリッドをゴール内にするために、はみ出し判定に余裕をもたせる
-                const float radiusOffset = 0.6f;
-
-                // 経路が範囲ゴールの半径に収まっているか
-                bool isCorrectPath = path
-                    .Select(node => node.Position - (Vector2)goalPos)
-                    .Select(v => v.x * v.x + v.y * v.y)
-                    .All(d => d <= (radius + radiusOffset) * (radius + radiusOffset));
-
-                DebugPaths.Add(path.Select(node => node.Index).ToList());
-
-                // 収まっていたら到達可能な範囲ゴールに含める
-                if (isCorrectPath)
-                {
-                    correctRangeGoal.UnionWith(rangeGoal);
-                }
-            }
-
+            HashSet<int> correctRangeGoal = bfs.FindReachableGoals(goal, rangeGoals.SelectMany(item => item).ToHashSet(), radius);
             CorrectGoals = correctRangeGoal;
 
             HashSet<int> rangeGoalSet = rangeGoals.SelectMany(item => item).ToHashSet();
