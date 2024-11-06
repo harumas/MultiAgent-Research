@@ -31,6 +31,7 @@ namespace MainModule
 
         private void OnDrawGizmos()
         {
+            return;
             if (solver is RangeGoalAlgorithm algorithm)
             {
                 Vector3 origin = new Vector3((float)player.Position.x, (float)player.Position.y, 0f) * 0.3f - Vector3.one * 4.5f;
@@ -107,7 +108,7 @@ namespace MainModule
             {
                 UpdatePaint(grids, algorithm.CorrectGoals.Select(item => item), GridType.CorrectCircle);
                 UpdatePaint(grids, algorithm.IncorrectGoals.Select(item => item), GridType.IncorrectCircle);
-                //UpdatePaint(grids, algorithm.DebugPaths.SelectMany(item => item), GridType.DebugPath);
+                // UpdatePaint(grids, algorithm.DebugPaths.SelectMany(item => item), GridType.DebugPath);
             }
 
             if (solver is RangeGoalAlgorithmWithBFS algorithmWithBfs)

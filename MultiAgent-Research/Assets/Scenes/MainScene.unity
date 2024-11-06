@@ -439,9 +439,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 808944335}
-  - component: {fileID: 808944338}
   - component: {fileID: 808944336}
+  - component: {fileID: 808944338}
   - component: {fileID: 808944337}
+  - component: {fileID: 808944339}
   m_Layer: 0
   m_Name: MapVisualizer
   m_TagString: Untagged
@@ -542,8 +543,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3df637e8ac1442f190b02e8a9db1c3cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapDataManager: {fileID: 1518213659}
+  mapDataManager: {fileID: 1225256726}
   scaler: {fileID: 808944335}
+--- !u!114 &808944339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 808944334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73f03e6a8f63480cba5bb20d9e1da302, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  agentPrefab: {fileID: 6076674493375170171, guid: 904f6d240f95f954698bcefc93a6f2e6, type: 3}
+  agentParent: {fileID: 808944335}
 --- !u!1 &1225256722
 GameObject:
   m_ObjectHideFlags: 0
@@ -554,7 +569,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1225256723}
   - component: {fileID: 1225256724}
-  - component: {fileID: 1225256725}
+  - component: {fileID: 1225256726}
   m_Layer: 0
   m_Name: Starter
   m_TagString: Untagged
@@ -589,11 +604,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6b8a05692ae4b64c9c9c9acd91ca7a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  solverType: 1
-  mapDataManager: {fileID: 1518213659}
-  agentFactory: {fileID: 1225256725}
+  solverType: 0
+  mapDataManager: {fileID: 1225256726}
+  agentFactory: {fileID: 808944339}
   visualizer: {fileID: 808944336}
---- !u!114 &1225256725
+--- !u!114 &1225256726
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -602,57 +617,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1225256722}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 73f03e6a8f63480cba5bb20d9e1da302, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  agentPrefab: {fileID: 6076674493375170171, guid: 904f6d240f95f954698bcefc93a6f2e6, type: 3}
-  agentParent: {fileID: 808944335}
---- !u!1 &1518213657
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1518213658}
-  - component: {fileID: 1518213659}
-  m_Layer: 0
-  m_Name: MapDataParser
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1518213658
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1518213657}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.21078195, y: -0.20917298, z: 0.020564094}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1518213659
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1518213657}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c8c985fe4af1482c81e6b62fbaa76cf9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultHeight: 100
-  defaultWidth: 100
+  defaultHeight: 50
+  defaultWidth: 50
   mapData: {fileID: 11400000, guid: 9a42f8f8333920d40a496a34c2c11ad8, type: 2}
 --- !u!1 &1947067357
 GameObject:
@@ -795,6 +764,5 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 1225256723}
   - {fileID: 808944335}
-  - {fileID: 1518213658}
   - {fileID: 290831141}
   - {fileID: 592811384}

@@ -14,10 +14,6 @@ namespace PathFinding.Algorithm
 
         public HashSet<int> CorrectGoals;
         public HashSet<int> IncorrectGoals;
-        public List<List<int>> DebugPaths = new List<List<int>>();
-        public List<Vector2> targets = new List<Vector2>();
-        public List<Vector2> vs = new List<Vector2>();
-        public List<Vector2Int> points = new List<Vector2Int>();
 
         public RangeGoalAlgorithmWithBFS(Graph graph, GridGraphMediator mediator)
         {
@@ -30,11 +26,6 @@ namespace PathFinding.Algorithm
 
         public List<int> Solve(int start, int goal)
         {
-            DebugPaths.Clear();
-            targets.Clear();
-            points.Clear();
-            vs.Clear();
-
             Vector2Int startPos = mediator.GetPos(start);
             Vector2Int goalPos = mediator.GetPos(goal);
 

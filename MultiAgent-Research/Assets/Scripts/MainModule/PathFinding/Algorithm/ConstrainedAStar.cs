@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using PathFinder.Core;
 
@@ -61,7 +62,7 @@ namespace PathFinding.Algorithm
 
                     Node neighbour = nodes[neighbourIndex];
 
-                    neighbour.H = Heuristic(neighbour, target) * 0.01f;
+                    neighbour.H = Heuristic(neighbour, target);
                     neighbour.Time = node.Time + 1;
                     neighbour.Parent = node;
 
@@ -76,7 +77,7 @@ namespace PathFinding.Algorithm
         private float Heuristic(Node nodeA, Vector2 target)
         {
             Vector2 ab = nodeA.Position - target;
-            float magnitude = ab.x * ab.x + ab.y * ab.y;
+            float magnitude = (float)Math.Sqrt(ab.x * ab.x + ab.y * ab.y);
             return magnitude;
         }
 

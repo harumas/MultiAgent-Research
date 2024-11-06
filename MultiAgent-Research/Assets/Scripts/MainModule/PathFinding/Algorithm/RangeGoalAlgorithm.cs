@@ -47,7 +47,7 @@ namespace PathFinding.Algorithm
             List<HashSet<int>> rangeGoals = rangeGoalFinder.GetRangeGoals(goalPos, radius);
 
             // 到達可能な範囲ゴール
-            HashSet<int> correctRangeGoal = new HashSet<int>();
+            List<HashSet<int>> correctRangeGoal = new List<HashSet<int>>();
 
             foreach (HashSet<int> rangeGoal in rangeGoals)
             {
@@ -68,7 +68,7 @@ namespace PathFinding.Algorithm
                 List<Node> path = pathFinder.FindPath(goal, rangeGoal, heuristic);
 
                 // 境界のグリッドをゴール内にするために、はみ出し判定に余裕をもたせる
-                const float radiusOffset = 0.6f;
+                const float radiusOffset = 0.5f;
 
                 // 経路が範囲ゴールの半径に収まっているか
                 bool isCorrectPath = path
@@ -81,18 +81,18 @@ namespace PathFinding.Algorithm
                 // 収まっていたら到達可能な範囲ゴールに含める
                 if (isCorrectPath)
                 {
-                    correctRangeGoal.UnionWith(rangeGoal);
+                    correctRangeGoal.Add(rangeGoal);
                 }
             }
 
-            CorrectGoals = correctRangeGoal;
+            CorrectGoals = correctRangeGoal.SelectMany(item => item).ToHashSet();
 
             HashSet<int> rangeGoalSet = rangeGoals.SelectMany(item => item).ToHashSet();
-            rangeGoalSet.ExceptWith(correctRangeGoal);
+            rangeGoalSet.ExceptWith(CorrectGoals);
             IncorrectGoals = rangeGoalSet;
-
+            
             // 到達可能な範囲ゴールに対して経路探索
-            List<Node> result = pathFinder.FindPath(start, correctRangeGoal, mediator.GetPos(goal));
+            List<Node> result = pathFinder.FindPath(start, CorrectGoals, mediator.GetPos(goal));
 
             // ノードに変換して結果に追加
             return result.Select(node => node.Index).ToList();
