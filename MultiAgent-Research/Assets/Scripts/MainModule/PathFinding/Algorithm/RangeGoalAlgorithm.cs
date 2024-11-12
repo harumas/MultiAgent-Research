@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using PathFinder.Core;
+using UnityEngine;
+using Vector2 = PathFinder.Core.Vector2;
+using Vector2Int = PathFinder.Core.Vector2Int;
 
 namespace PathFinding.Algorithm
 {
@@ -14,7 +17,6 @@ namespace PathFinding.Algorithm
         public HashSet<int> CorrectGoals;
         public HashSet<int> IncorrectGoals;
         public List<List<int>> DebugPaths = new List<List<int>>();
-        public List<Vector2> targets = new List<Vector2>();
         public List<Vector2> vs = new List<Vector2>();
         public List<Vector2Int> points = new List<Vector2Int>();
 
@@ -29,7 +31,6 @@ namespace PathFinding.Algorithm
         public List<int> Solve(int start, int goal)
         {
             DebugPaths.Clear();
-            targets.Clear();
             points.Clear();
             vs.Clear();
 
@@ -51,21 +52,8 @@ namespace PathFinding.Algorithm
 
             foreach (HashSet<int> rangeGoal in rangeGoals)
             {
-                // 範囲ゴールの方向を求める
-                Vector2Int target = default;
-                foreach (int index in rangeGoal)
-                {
-                    points.Add(mediator.GetPos(index));
-                    vs.Add(mediator.GetPos(index));
-                    target += mediator.GetPos(index);
-                }
-
-                Vector2 heuristic = ((Vector2)target).Normalize() * radius * 2f;
-
-                targets.Add(heuristic);
-
                 // ゴールから範囲ゴールまでの経路を求める
-                List<Node> path = pathFinder.FindPath(goal, rangeGoal, heuristic);
+                List<Node> path = pathFinder.FindPath(rangeGoal.First(), new HashSet<int>() { goal }, mediator.GetPos(goal));
 
                 // 境界のグリッドをゴール内にするために、はみ出し判定に余裕をもたせる
                 const float radiusOffset = 0.5f;
@@ -90,7 +78,7 @@ namespace PathFinding.Algorithm
             HashSet<int> rangeGoalSet = rangeGoals.SelectMany(item => item).ToHashSet();
             rangeGoalSet.ExceptWith(CorrectGoals);
             IncorrectGoals = rangeGoalSet;
-            
+
             // 到達可能な範囲ゴールに対して経路探索
             List<Node> result = pathFinder.FindPath(start, CorrectGoals, mediator.GetPos(goal));
 

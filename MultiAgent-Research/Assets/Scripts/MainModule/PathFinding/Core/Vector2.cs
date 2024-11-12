@@ -123,5 +123,10 @@ namespace PathFinder.Core
         {
             return HashCode.Combine(x, y);
         }
+
+        public override string ToString()
+        {
+            return $"X:{x}, Y:{y}";
+        }
     }
 }

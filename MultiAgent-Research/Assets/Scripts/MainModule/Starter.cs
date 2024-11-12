@@ -37,10 +37,6 @@ namespace MainModule
                 Vector3 origin = new Vector3((float)player.Position.x, (float)player.Position.y, 0f) * 0.3f - Vector3.one * 4.5f;
 
                 Gizmos.color = Color.red;
-                foreach (Vector2Int t in algorithm.targets)
-                {
-                    Gizmos.DrawLine(origin, new Vector3(t.x, t.y, 0f) * 0.3f - Vector3.one * 4.5f);
-                }
 
                 Gizmos.color = Color.blue;
                 foreach (Vector2Int t in algorithm.vs)

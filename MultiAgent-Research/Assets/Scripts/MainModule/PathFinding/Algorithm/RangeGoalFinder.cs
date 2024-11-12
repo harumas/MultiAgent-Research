@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using PathFinder.Core;
+using UnityEngine;
+using Vector2Int = PathFinder.Core.Vector2Int;
 
 namespace PathFinding.Algorithm
 {
@@ -70,6 +73,8 @@ namespace PathFinding.Algorithm
             SetCirclePoint(circlePoints, radius + center.x, center.y);
             SetCirclePoint(circlePoints, -radius + center.x, center.y);
 
+            Vector2Int previous = new Vector2Int();
+
             for (pos.x = 0; pos.x <= pos.y; pos.x++)
             {
                 if (d < 0)
@@ -81,6 +86,7 @@ namespace PathFinding.Algorithm
                     d += 10 + 4 * pos.x - 4 * pos.y--;
                 }
 
+                Vector2Int current = new Vector2Int(pos.y + center.x, pos.x + center.y);
                 SetCirclePoint(circlePoints, pos.y + center.x, pos.x + center.y);
                 SetCirclePoint(circlePoints, pos.x + center.x, pos.y + center.y);
                 SetCirclePoint(circlePoints, -pos.x + center.x, pos.y + center.y);
@@ -89,6 +95,25 @@ namespace PathFinding.Algorithm
                 SetCirclePoint(circlePoints, -pos.x + center.x, -pos.y + center.y);
                 SetCirclePoint(circlePoints, pos.x + center.x, -pos.y + center.y);
                 SetCirclePoint(circlePoints, pos.y + center.x, -pos.x + center.y);
+
+                if (pos.x > 0)
+                {
+                    Vector2Int dv = previous - current;
+                    if (dv == new Vector2Int(1, -1))
+                    {
+                        Vector2Int p = previous + new Vector2Int(0, 1) - center;
+                        SetCirclePoint(circlePoints, p.x + center.x, p.y + center.y);
+                        SetCirclePoint(circlePoints, p.y + center.x, p.x + center.y);
+                        SetCirclePoint(circlePoints, -p.x + center.x, p.y + center.y);
+                        SetCirclePoint(circlePoints, -p.y + center.x, p.x + center.y);
+                        SetCirclePoint(circlePoints, -p.x + center.x, -p.y + center.y);
+                        SetCirclePoint(circlePoints, -p.y + center.x, -p.x + center.y);
+                        SetCirclePoint(circlePoints, p.x + center.x, -p.y + center.y);
+                        SetCirclePoint(circlePoints, p.y + center.x, -p.x + center.y);
+                    }
+                }
+
+                previous = current;
             }
 
             return circlePoints;
