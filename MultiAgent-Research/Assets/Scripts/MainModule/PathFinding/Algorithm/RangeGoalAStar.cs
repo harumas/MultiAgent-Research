@@ -5,80 +5,29 @@ using PathFinder.Core;
 
 namespace PathFinding.Algorithm
 {
-    /// <summary>
-    /// 制約を考慮するA*アルゴリズム
-    /// </summary>
-    public class ConstrainedAStar
+    public class RangeGoalAStar
     {
         private readonly Graph graph;
         private readonly List<Node> nodes;
+        private readonly HashSet<int> passableNodes;
 
-        public ConstrainedAStar(Graph graph, List<Node> nodes)
+        public RangeGoalAStar(Graph graph, List<Node> nodes)
         {
             this.graph = graph;
             this.nodes = nodes;
+
+            passableNodes = new HashSet<int>();
         }
 
-        public List<Node> FindPath(
-            int start,
-            HashSet<int> end,
-            Vector2 target
-        )
+        public void Reset()
         {
-            ResetNodes();
-            var openList = new PriorityQueue<float, (float f, Node node)>(item => item.f, false);
-            var closedList = new HashSet<int>();
-
-            Node startNode = nodes[start];
-
-            //初期ノードの作成
-            startNode.Time = 0;
-            startNode.H = Heuristic(startNode, target);
-            openList.Enqueue((0, startNode));
-            closedList.Add(startNode.Index);
-
-            // 待機し続けた時に打ち切る
-            while (openList.Count > 0)
-            {
-                Node node = openList.Dequeue().node;
-
-                //ゴールに到達したら
-                if (end.Contains(node.Index))
-                {
-                    //親まで辿ってパスを返す
-                    var r = RetracePath(node);
-
-                    return r;
-                }
-
-                List<int> nextNodes = graph.GetNextNodes(node.Index).ToList();
-
-                foreach (int neighbourIndex in nextNodes)
-                {
-                    if (!closedList.Add(neighbourIndex))
-                    {
-                        continue;
-                    }
-
-                    Node neighbour = nodes[neighbourIndex];
-
-                    neighbour.H = Heuristic(neighbour, target);
-                    neighbour.Time = node.Time + 1;
-                    neighbour.Parent = node;
-
-                    openList.Enqueue((neighbour.F, neighbour));
-                }
-            }
-
-            //パスを見つけられなかったら0
-            return new List<Node>();
+            passableNodes.Clear();
         }
 
-
-        public List<Node> FindPathWithRange(
+        public List<Node> FindReachablePath(
             int start,
             int end,
-            float radius 
+            float radius
         )
         {
             ResetNodes();
@@ -100,12 +49,16 @@ namespace PathFinding.Algorithm
                 Node node = openList.Dequeue().node;
 
                 //ゴールに到達したら
-                if (end == node.Index)
+                if (end == node.Index || passableNodes.Contains(node.Index))
                 {
                     //親まで辿ってパスを返す
-                    var r = RetracePath(node);
+                    var path = RetracePath(node);
+                    foreach (Node n in path)
+                    {
+                        passableNodes.Add(n.Index);
+                    }
 
-                    return r;
+                    return path;
                 }
 
                 //探索するグリッドが範囲外ならスキップ
@@ -132,8 +85,7 @@ namespace PathFinding.Algorithm
                     openList.Enqueue((neighbour.F, neighbour));
                 }
             }
-
-            //パスを見つけられなかったら0
+            
             return new List<Node>();
         }
 

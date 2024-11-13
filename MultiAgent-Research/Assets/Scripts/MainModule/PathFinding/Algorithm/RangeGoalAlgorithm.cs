@@ -12,6 +12,7 @@ namespace PathFinding.Algorithm
     {
         private readonly GridGraphMediator mediator;
         private readonly ConstrainedAStar pathFinder;
+        private readonly RangeGoalAStar rangeGoalAStar;
         private readonly RangeGoalFinder rangeGoalFinder;
 
         public HashSet<int> CorrectGoals;
@@ -25,6 +26,7 @@ namespace PathFinding.Algorithm
             this.mediator = mediator;
 
             pathFinder = new ConstrainedAStar(graph, CreateNodes(graph));
+            rangeGoalAStar = new RangeGoalAStar(graph, CreateNodes(graph));
             rangeGoalFinder = new RangeGoalFinder(graph, mediator);
         }
 
@@ -49,25 +51,24 @@ namespace PathFinding.Algorithm
 
             // 到達可能な範囲ゴール
             List<HashSet<int>> correctRangeGoal = new List<HashSet<int>>();
+            
+            rangeGoalAStar.Reset();
 
             foreach (HashSet<int> rangeGoal in rangeGoals)
             {
-                // ゴールから範囲ゴールまでの経路を求める
-                List<Node> path = pathFinder.FindPath(rangeGoal.First(), new HashSet<int>() { goal }, mediator.GetPos(goal));
-
+                // 経路を許可する範囲
                 // 境界のグリッドをゴール内にするために、はみ出し判定に余裕をもたせる
-                const float radiusOffset = 0.5f;
-
-                // 経路が範囲ゴールの半径に収まっているか
-                bool isCorrectPath = path
-                    .Select(node => node.Position - (Vector2)goalPos)
-                    .Select(v => v.x * v.x + v.y * v.y)
-                    .All(d => d <= (radius + radiusOffset) * (radius + radiusOffset));
+                float allowRange = radius + 0.5f;
+                
+                // 範囲ゴールからゴールまでの経路を求める
+                List<Node> path = rangeGoalAStar.FindReachablePath(rangeGoal.First(), goal, allowRange);
+                
+                //List<Node> path = pathFinder.FindPathWithRange(rangeGoal.First(), goal, allowRange);
 
                 DebugPaths.Add(path.Select(node => node.Index).ToList());
 
                 // 収まっていたら到達可能な範囲ゴールに含める
-                if (isCorrectPath)
+                if (path.Count > 0)
                 {
                     correctRangeGoal.Add(rangeGoal);
                 }
