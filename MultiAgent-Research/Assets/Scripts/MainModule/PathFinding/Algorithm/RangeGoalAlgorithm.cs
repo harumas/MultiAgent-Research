@@ -63,9 +63,7 @@ namespace PathFinding.Algorithm
                 // 範囲ゴールからゴールまでの経路を求める
                 List<Node> path = rangeGoalAStar.FindReachablePath(rangeGoal.First(), goal, allowRange);
                 
-                //List<Node> path = pathFinder.FindPathWithRange(rangeGoal.First(), goal, allowRange);
-
-                DebugPaths.Add(path.Select(node => node.Index).ToList());
+                //DebugPaths.Add(path.Select(node => node.Index).ToList());
 
                 // 収まっていたら到達可能な範囲ゴールに含める
                 if (path.Count > 0)

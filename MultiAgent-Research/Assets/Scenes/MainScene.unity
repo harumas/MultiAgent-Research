@@ -620,9 +620,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8c985fe4af1482c81e6b62fbaa76cf9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultHeight: 9
-  defaultWidth: 9
-  mapData: {fileID: 11400000, guid: b2eb59a72c5efcf468e76a4121a46a6e, type: 2}
+  defaultHeight: 101
+  defaultWidth: 101
+  mazeType: 2
+  mapData: {fileID: 11400000, guid: 289dc762510bdbe4296068136d31a268, type: 2}
 --- !u!1 &1947067357
 GameObject:
   m_ObjectHideFlags: 0

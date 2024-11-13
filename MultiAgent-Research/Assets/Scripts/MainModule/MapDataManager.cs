@@ -9,9 +9,11 @@ namespace MainModule
     {
         [SerializeField] private int defaultHeight;
         [SerializeField] private int defaultWidth;
+        [SerializeField] private MazeType mazeType;
         [SerializeField] private MapSaveData mapData;
 
         private MapData currentMapData;
+        private IMazeGenerator generator;
         public MapData CurrentMapData => currentMapData;
 
         public MapData Load()
@@ -103,17 +105,23 @@ namespace MainModule
 
         private GridType[,] GetDefaultMapData(int height, int width)
         {
-            var map = new GridType[height, width];
-
-            for (var y = 0; y < height; y++)
+            IMazeGenerator mazeGenerator;
+            switch (mazeType)
             {
-                for (var x = 0; x < width; x++)
-                {
-                    map[y, x] = GridType.Road;
-                }
+                case MazeType.Empty:
+                    mazeGenerator = new EmptyMaze();
+                    break;
+                case MazeType.Bar:
+                    mazeGenerator = new BarMaze();
+                    break;
+                case MazeType.Dig:
+                    mazeGenerator = new DigMaze();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
-            return map;
+            return mazeGenerator.Generate(height, width);
         }
     }
 }

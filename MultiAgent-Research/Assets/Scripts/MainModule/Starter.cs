@@ -104,7 +104,7 @@ namespace MainModule
             {
                 UpdatePaint(grids, algorithm.CorrectGoals.Select(item => item), GridType.CorrectCircle);
                 UpdatePaint(grids, algorithm.IncorrectGoals.Select(item => item), GridType.IncorrectCircle);
-                  UpdatePaint(grids, algorithm.DebugPaths.SelectMany(item => item), GridType.DebugPath);
+                UpdatePaint(grids, algorithm.DebugPaths.SelectMany(item => item), GridType.DebugPath);
             }
 
             if (solver is RangeGoalAlgorithmWithBFS algorithmWithBfs)

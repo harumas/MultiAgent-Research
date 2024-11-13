@@ -153,10 +153,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ed4a59ee8c445ed9fd977ddf501dc21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  solverType: 1
+  solverType: 2
   mapDataManager: {fileID: 346387397}
   interval: 50
-  attemptCount: 1000
+  attemptCount: 100
 --- !u!4 &346387396
 Transform:
   m_ObjectHideFlags: 0
@@ -186,6 +186,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultHeight: 0
   defaultWidth: 0
+  mazeType: 0
   mapData: {fileID: 11400000, guid: 9a42f8f8333920d40a496a34c2c11ad8, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
